@@ -35,12 +35,11 @@ def index(request: Request):
 
 @app.get('/api/get_user')
 def get_user(request: Request):
-    # https://github.com/clerk/clerk-sdk-python/issues/36
+    # An open issue - https://github.com/clerk/clerk-sdk-python/issues/36
     # user = clerk.users.get(request.state.user_id)
     return { 'user': 1 }
 
 def fastapi_to_httpx_request(request: Request):
-    print(request.url)
     httpx_request = httpx.Request(
         method=request.method,
         url=str(request.url),
