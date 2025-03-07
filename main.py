@@ -16,13 +16,13 @@ templates = Jinja2Templates(directory="templates")
 clerk_publishable_key=os.getenv('CLERK_PUBLISHABLE_KEY')
 clerk_secret_key=os.getenv('CLERK_SECRET_KEY')
 
-clerk = Clerk(bearer_auth=clerk_secret_key)
+sdk = Clerk(bearer_auth=clerk_secret_key)
 
 @app.middleware('http')
 async def authenticate_with_clerk(request: Request, call_next):
     options = AuthenticateRequestOptions()
     httpx_request = fastapi_to_httpx_request(request)
-    request_state = clerk.authenticate_request(httpx_request, options)
+    request_state = sdk.authenticate_request(httpx_request, options)
     request.state.user_id = None if request_state.payload is None else request_state.payload['sub']
     response = await call_next(request)
     return response
@@ -35,7 +35,7 @@ def index(request: Request):
 
 @app.get('/api/get_user')
 def get_user(request: Request):
-    user = clerk.users.get(user_id=request.state.user_id)
+    user = sdk.users.get(user_id=request.state.user_id)
     return { 'user': user }
 
 def fastapi_to_httpx_request(request: Request):
