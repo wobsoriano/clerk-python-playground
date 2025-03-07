@@ -5,7 +5,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from clerk_backend_api import Clerk
 from clerk_backend_api.jwks_helpers import AuthenticateRequestOptions
-import httpx
 
 load_dotenv()
 
@@ -21,8 +20,7 @@ sdk = Clerk(bearer_auth=clerk_secret_key)
 @app.middleware('http')
 async def authenticate_with_clerk(request: Request, call_next):
     options = AuthenticateRequestOptions()
-    httpx_request = fastapi_to_httpx_request(request)
-    request_state = sdk.authenticate_request(httpx_request, options)
+    request_state = sdk.authenticate_request(request, options)
     request.state.user_id = None if request_state.payload is None else request_state.payload['sub']
     response = await call_next(request)
     return response
@@ -37,12 +35,3 @@ def index(request: Request):
 def get_user(request: Request):
     user = sdk.users.get(user_id=request.state.user_id)
     return { 'user': user }
-
-def fastapi_to_httpx_request(request: Request):
-    httpx_request = httpx.Request(
-        method=request.method,
-        url=str(request.url),
-        headers=request.headers,
-    )
-
-    return httpx_request
